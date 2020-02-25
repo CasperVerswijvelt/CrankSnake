@@ -4,8 +4,12 @@ local snake = {
     row= 16
   }
 }
-local direction = 1 -- 1 = top, 2 = right, 3 = down, 4 = left
+local direction = 0 -- 1 = top, 2 = right, 3 = down, 4 = left
+local lastDirection = 0
 local speed = 0
+
+local hue = 0
+local saturation = 1
 
 local food = {
 }
@@ -25,6 +29,44 @@ function tprint (tbl, indent)
   end
 end
 
+--[[
+ * Converts an HSL color value to RGB. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes h, s, and l are contained in the set [0, 1] and
+ * returns r, g, and b in the set [0, 255].
+ *
+ * @param   Number  h       The hue
+ * @param   Number  s       The saturation
+ * @param   Number  l       The lightness
+ * @return  Array           The RGB representation
+]]
+local function hslToRgb(h, s, l)
+  local r, g, b
+
+  if s == 0 then
+    r, g, b = l, l, l -- achromatic
+  else
+    function hue2rgb(p, q, t)
+      if t < 0   then t = t + 1 end
+      if t > 1   then t = t - 1 end
+      if t < 1/6 then return p + (q - p) * 6 * t end
+      if t < 1/2 then return q end
+      if t < 2/3 then return p + (q - p) * (2/3 - t) * 6 end
+      return p
+    end
+
+    local q
+    if l < 0.5 then q = l * (1 + s) else q = l + s - l * s end
+    local p = 2 * l - q
+
+    r = hue2rgb(p, q, h + 1/3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1/3)
+  end
+
+  return r * 255, g * 255, b * 255
+end
+
 local function gameOver()
 
   local data = {}
@@ -35,6 +77,10 @@ local function gameOver()
     row= 16
   }}
   food = {}
+  hue = 0
+  saturation = 1
+  direction = 0
+  lastDirection = 0
 
   local row, col
   for row = 1,32 do
@@ -150,11 +196,17 @@ local function render ()
     table.insert(snake,1,newHead)
     
     -- Paint snake head
-    data["snakeLayer.Table.color."..newHead.row.."."..newHead.col] = 0xFFFFFF
+    local r, g, b = hslToRgb(hue/255,1, saturation)
+    data["snakeLayer.Table.color."..newHead.row.."."..newHead.col] = gre.rgb(r,g,b)
     data["snakeLayer.Table.alpha."..newHead.row.."."..newHead.col] = 0
     gre.set_data(data)
     
+    hue = (hue + 5) % 256
+    saturation = math.max(saturation-0.03, 0.5)
+    
   end
+  
+  lastDirection = direction
 
 end
 
@@ -183,13 +235,13 @@ function CBOnKeyDown (mapargs)
   end
   
   -- Set direction
-  if(key == 37 and direction ~= 2) then
+  if(key == 37 and lastDirection ~= 2) then
     direction = 4
-  elseif (key == 38 and direction ~= 3) then
+  elseif (key == 38 and lastDirection ~= 3) then
     direction = 1
-  elseif (key == 39 and direction ~= 4) then
+  elseif (key == 39 and lastDirection ~= 4) then
     direction = 2
-  elseif (key == 40 and direction ~= 1) then
+  elseif (key == 40 and lastDirection ~= 1) then
     direction = 3
   end
 
