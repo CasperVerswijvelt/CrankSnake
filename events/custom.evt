@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<eventdefinitions>
+  <event name="gre.animate.complete.blink" type="0x8">
+    <label>blink animation complete</label>
+    <description>The animation named blink has completed</description>
+  </event>
+  <event name="gre.animate.complete.fadeInMenu" type="0x8">
+    <label>fadeInMenu animation complete</label>
+    <description>The animation named fadeInMenu has completed</description>
+  </event>
+  <event name="gre.animate.complete.fadeOutMenu" type="0x8">
+    <label>fadeOutMenu animation complete</label>
+    <description>The animation named fadeOutMenu has completed</description>
+  </event>
+  <event name="gre.animate.stop.blink" type="0x8">
+    <label>blink animation stopped</label>
+    <description>The animation named blink has been stopped</description>
+  </event>
+  <event name="gre.animate.stop.fadeInMenu" type="0x8">
+    <label>fadeInMenu animation stopped</label>
+    <description>The animation named fadeInMenu has been stopped</description>
+  </event>
+  <event name="gre.animate.stop.fadeOutMenu" type="0x8">
+    <label>fadeOutMenu animation stopped</label>
+    <description>The animation named fadeOutMenu has been stopped</description>
+  </event>
+</eventdefinitions>
