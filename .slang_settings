@@ -4,7 +4,7 @@
 	<item value="1.0" key="pref.editor_zoom"/>
 	<item value="${app:snakeLayer.title.alpha}&#x0A;${app:snakeLayer.title.subtitleAlpha}" key="anim-fadeOutMenu"/>
 	<item value="Table" key="pref.default_table_name"/>
-	<item value="title" key="pref.default_control_name"/>
+	<item value="score" key="pref.default_control_name"/>
 	<item value="${app:snakeLayer.title.subtitleAlpha}&#x0A;${app:snakeLayer.title.alpha}" key="anim-fadeOut"/>
 	<item value="${app:snakeLayer.title.alpha}&#x0A;${app:snakeLayer.title.subtitleAlpha}" key="anim-fadeInMenu"/>
 	<item value="snakeLayer" key="pref.default_layer_name"/>
