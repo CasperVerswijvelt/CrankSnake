@@ -140,6 +140,8 @@ local function paintFood()
 end
 
 local function render ()
+  
+  collectgarbage()
 
   if (speed == 0) then return end
 
