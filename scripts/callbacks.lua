@@ -1,20 +1,16 @@
 local snake = {
-  {
-    col=12,
-    row= 16
   }
-}
 local direction = 0 -- 1 = top, 2 = right, 3 = down, 4 = left
 local lastDirection = 0
-local speed = 0
-local timeoutTimer
+local isPlaying = false
+
+local allowGoTroughWalls = false
+local removeTail = true
 
 local hue = 0
 local saturation = 1
 
 local food = nil
-
-local startScreenActive = true
 
 --function tprint (tbl, indent)
 --  if not indent then indent = 0 end
@@ -32,31 +28,61 @@ local startScreenActive = true
 --[[
 
 
+
+
+
  * Converts an HSL color value to RGB. Conversion formula
+
+
+
 
 
  * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
 
 
+
+
+
  * Assumes h, s, and l are contained in the set [0, 1] and
+
+
+
 
 
  * returns r, g, and b in the set [0, 255].
 
 
+
+
+
  *
+
+
+
 
 
  * @param   Number  h       The hue
 
 
+
+
+
  * @param   Number  s       The saturation
+
+
+
 
 
  * @param   Number  l       The lightness
 
 
+
+
+
  * @return  Array           The RGB representation
+
+
+
 
 
 ]]
@@ -66,7 +92,7 @@ local function hslToRgb(h, s, l)
   if s == 0 then
     r, g, b = l, l, l -- achromatic
   else
-    function hue2rgb(p, q, t)
+    local function hue2rgb(p, q, t)
       if t < 0   then t = t + 1 end
       if t > 1   then t = t - 1 end
       if t < 1/6 then return p + (q - p) * 6 * t end
@@ -99,17 +125,13 @@ local function gameOver()
   data["snakeLayer.title.topScore"] = tostring(#snake)
 
   gre.set_data(data)
-  
-  snake = {{
-    col=12,
-    row= 16
-  }}
+
   food = nil
   hue = 0
   saturation = 1
   direction = 0
   lastDirection = 0
-  speed = 0
+  isPlaying = false
 
   gre.animation_trigger("fadeInMenu")
 
@@ -142,12 +164,9 @@ end
 local function render ()
   collectgarbage()
 
-  if (speed == 0) then return end
+  if (not isPlaying) then return end
 
   local data = {}
-
-  -- Paint snake tail black
-  data["snakeLayer.Table.color."..snake[#snake].row.."."..snake[#snake].col] = 0x000000
 
   local newHead = {
     col=snake[1].col,
@@ -164,16 +183,28 @@ local function render ()
     newHead.col = newHead.col - 1
   end
 
+  if (allowGoTroughWalls) then
+    newHead.col = math.fmod(newHead.col + 23, 24) + 1
+    newHead.row  = math.fmod(newHead.row + 31, 32) + 1
+  end
+
   -- Food check
   local ateFood = food ~= nil and food.col == newHead.col and food.row == newHead.row
 
-
   -- Self collision
   local hitSelf = false
+
+  local snakeLength = #snake
   for k,v in pairs(snake) do
     if newHead.col == v.col and newHead.row == v.row then
 
-      hitSelf = true
+      -- The last element of the snake will only count as a selfhit
+      --  if food was eaten, since we only update the snake after
+      --  it is sure that the game isn't over
+      if (k == snakeLength and ateFood) then
+      else
+        hitSelf = true
+      end
       break
 
     end
@@ -182,7 +213,7 @@ local function render ()
   -- Wall collision
   local hitWall = newHead.col > 24 or newHead.col < 1 or newHead.row > 32 or newHead.row < 1
 
-  if(hitSelf or hitWall) then
+  if (hitSelf or hitWall) then
 
     gameOver()
 
@@ -193,11 +224,15 @@ local function render ()
       generateFood()
       paintFood()
 
-    else 
-    
+    else
+
+
       -- Remove snake tail
-      snake[#snake] = nil
-    
+      if (removeTail) then
+        data["snakeLayer.Table.color."..snake[#snake].row.."."..snake[#snake].col] = 0x000000
+        snake[#snake] = nil
+      end
+
     end
 
     -- Insert new snake head at pos 1
@@ -209,22 +244,34 @@ local function render ()
     data["snakeLayer.Table.alpha."..newHead.row.."."..newHead.col] = 0
     data["snakeLayer.score.text"] = tostring(#snake)
     data["snakeLayer.score.grd_hidden"] = false
-    
+
     gre.set_data(data)
 
     hue = (hue + 5) % 256
     saturation = math.max(saturation-0.03, 0.5)
 
     lastDirection = direction
-
---    gre.timer_clear_timeout(timeoutTimer)
---    timeoutTimer = gre.timer_set_timeout(render,125)
---    
---    print('set timeout')
   end
+
+
 
 end
 
+local function startGame ()
+  generateFood()
+  paintFood()
+  direction = 3
+  isPlaying = true
+
+  snake = {{
+    col=12,
+    row= 16
+  }}
+
+  gre.set_value("snakeLayer.Table.color."..snake[1].row.."."..snake[1].col, 0xFFFFFF)
+  gre.animation_stop("blink")
+  gre.animation_trigger("fadeOutMenu")
+end
 
 function CBOnKeyDown (mapargs)
 
@@ -234,22 +281,9 @@ function CBOnKeyDown (mapargs)
   -- Guards
   if (key == nil) then return end
 
-  local shouldStartGame = false
+  if (not isPlaying) then
 
-  if (speed == 0) then
-
-    generateFood()
-    paintFood()
-    speed = 1
-    direction = 3
-    shouldStartGame = true
-
-  end
-
-  if (startScreenActive) then
-
-    gre.animation_stop("blink")
-    gre.animation_trigger("fadeOutMenu")
+    startGame()
 
   end
 
@@ -262,31 +296,16 @@ function CBOnKeyDown (mapargs)
     direction = 2
   elseif (key == 40 and lastDirection ~= 1) then
     direction = 3
-  end
-
-  if (shouldStartGame) then
-
-    render()
-
-  end
-
-
-end
-
-function CBOnAppInit (mapargs)
-
-  gre.animation_trigger("blink")
-
-end
-
-function CBOnBlinkComplete (mapargs)
-
-  if (startScreenActive) then
-    gre.animation_trigger("blink")
+  elseif (key == 112) then
+    allowGoTroughWalls = not allowGoTroughWalls
+  elseif (key == 113) then
+    removeTail = not removeTail
   end
 
 end
 
 function CBOnSecond (mapargs)
-render()
+  render()
 end
+
+gre.timer_set_interval(CBOnSecond,125)
