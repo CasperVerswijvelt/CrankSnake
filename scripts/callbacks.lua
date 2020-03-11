@@ -12,80 +12,6 @@ local saturation = 1
 
 local food = nil
 
---function tprint (tbl, indent)
---  if not indent then indent = 0 end
---  for k, v in pairs(tbl) do
---    formatting = string.rep("  ", indent) .. k .. ": "
---    if type(v) == "table" then
---      print(formatting)
---      tprint(tostring(v), indent+1)
---    else
---      print(formatting .. tostring(v))
---    end
---  end
---end
-
---[[
-
-
-
-
-
- * Converts an HSL color value to RGB. Conversion formula
-
-
-
-
-
- * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
-
-
-
-
-
- * Assumes h, s, and l are contained in the set [0, 1] and
-
-
-
-
-
- * returns r, g, and b in the set [0, 255].
-
-
-
-
-
- *
-
-
-
-
-
- * @param   Number  h       The hue
-
-
-
-
-
- * @param   Number  s       The saturation
-
-
-
-
-
- * @param   Number  l       The lightness
-
-
-
-
-
- * @return  Array           The RGB representation
-
-
-
-
-
-]]
 local function hslToRgb(h, s, l)
   local r, g, b
 
@@ -226,7 +152,6 @@ local function render ()
 
     else
 
-
       -- Remove snake tail
       if (removeTail) then
         data["snakeLayer.Table.color."..snake[#snake].row.."."..snake[#snake].col] = 0x000000
@@ -252,8 +177,6 @@ local function render ()
 
     lastDirection = direction
   end
-
-
 
 end
 
@@ -304,8 +227,10 @@ function CBOnKeyDown (mapargs)
 
 end
 
-function CBOnSecond (mapargs)
+function CBRender (mapargs)
   render()
 end
 
-gre.timer_set_interval(CBOnSecond,125)
+-- Use this timer if you cannot recieve 'render'
+--  events from a c backend
+gre.timer_set_interval(CBRender,125)
