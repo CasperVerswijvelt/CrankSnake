@@ -24,4 +24,5 @@
     <label>fadeOutMenu animation stopped</label>
     <description>The animation named fadeOutMenu has been stopped</description>
   </event>
+  <event name="second" type="0x40"/>
 </eventdefinitions>

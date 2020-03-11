@@ -140,7 +140,6 @@ local function paintFood()
 end
 
 local function render ()
-  
   collectgarbage()
 
   if (speed == 0) then return end
@@ -218,8 +217,10 @@ local function render ()
 
     lastDirection = direction
 
-    gre.timer_clear_timeout(timeoutTimer)
-    timeoutTimer = gre.timer_set_timeout(render,125)
+--    gre.timer_clear_timeout(timeoutTimer)
+--    timeoutTimer = gre.timer_set_timeout(render,125)
+--    
+--    print('set timeout')
   end
 
 end
@@ -284,4 +285,8 @@ function CBOnBlinkComplete (mapargs)
     gre.animation_trigger("blink")
   end
 
+end
+
+function CBOnSecond (mapargs)
+render()
 end
